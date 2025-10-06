@@ -35,59 +35,72 @@ export const DateSelector = ({
         What day is best for you?
       </h2>
       
-      <div className="flex items-center justify-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onWeekChange('prev')}
-          className="h-10 w-10 rounded-full hover:bg-muted"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
+      <div className="bg-card p-4 rounded-xl">
+        <div className="flex items-center justify-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onWeekChange('prev')}
+            className="h-10 w-10 rounded-full hover:bg-muted"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
 
-        <div className="flex gap-2">
-          {weekDays.map((day, index) => {
-            const isSelected = isSameDay(day, selectedDate);
-            const isDisabled = isDateDisabled(day);
+          <div className="flex gap-2 border border-[hsl(var(--scheduler-border))] rounded-xl p-2">
+            {weekDays.map((day, index) => {
+              const isSelected = isSameDay(day, selectedDate);
+              const isDisabled = isDateDisabled(day);
 
-            return (
-              <button
-                key={index}
-                onClick={() => !isDisabled && onDateSelect(day)}
-                disabled={isDisabled}
-                className={`
-                  flex flex-col items-center justify-center w-16 h-20 rounded-xl
-                  transition-all duration-200
-                  ${isSelected 
-                    ? 'bg-[hsl(var(--scheduler-selected))] text-[hsl(var(--scheduler-selected-foreground))] shadow-lg scale-105' 
-                    : isDisabled
-                    ? 'bg-[hsl(var(--scheduler-disabled))] text-[hsl(var(--scheduler-disabled-foreground))] cursor-not-allowed'
-                    : 'bg-card hover:bg-[hsl(var(--scheduler-hover))] border border-[hsl(var(--scheduler-border))]'
-                  }
-                `}
-              >
-                <span className="text-xs font-medium mb-1">
-                  {format(day, 'EEE')}
-                </span>
-                <span className={`text-lg font-semibold ${isSelected ? 'text-white' : ''}`}>
-                  {format(day, 'd')}
-                </span>
-                <span className="text-xs">
-                  {format(day, 'MMM')}
-                </span>
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={index}
+                  onClick={() => !isDisabled && onDateSelect(day)}
+                  disabled={isDisabled}
+                  className={`
+                    flex flex-col w-16 rounded-lg overflow-hidden border
+                    transition-all duration-200
+                    ${isSelected 
+                      ? 'border-[hsl(var(--scheduler-selected))] shadow-lg scale-105' 
+                      : isDisabled
+                      ? 'border-[hsl(var(--scheduler-border))] cursor-not-allowed'
+                      : 'border-[hsl(var(--scheduler-border))] hover:border-[hsl(var(--scheduler-selected))]'
+                    }
+                  `}
+                >
+                  <div className={`
+                    text-xs font-medium py-1 text-center
+                    ${isSelected 
+                      ? 'bg-[hsl(var(--scheduler-selected))] text-[hsl(var(--scheduler-selected-foreground))]' 
+                      : 'bg-muted text-muted-foreground'
+                    }
+                  `}>
+                    {format(day, 'EEE')}
+                  </div>
+                  <div className={`
+                    flex flex-col items-center justify-center py-3 bg-card
+                    ${isDisabled ? 'text-[hsl(var(--scheduler-disabled-foreground))]' : 'text-foreground'}
+                  `}>
+                    <span className="text-lg font-semibold">
+                      {format(day, 'd')}
+                    </span>
+                    <span className="text-xs">
+                      {format(day, 'MMM')}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onWeekChange('next')}
+            className="h-10 w-10 rounded-full hover:bg-muted"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
         </div>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onWeekChange('next')}
-          className="h-10 w-10 rounded-full hover:bg-muted"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </Button>
       </div>
     </div>
   );

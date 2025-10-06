@@ -75,7 +75,7 @@ export const TimeSelector = ({
                     ? 'bg-[hsl(var(--scheduler-selected))] text-[hsl(var(--scheduler-selected-foreground))] hover:bg-[hsl(var(--scheduler-selected))] border-[hsl(var(--scheduler-selected))]' 
                     : isDisabled
                     ? 'bg-[hsl(var(--scheduler-disabled))] text-[hsl(var(--scheduler-disabled-foreground))] cursor-not-allowed border-[hsl(var(--scheduler-border))]'
-                    : 'hover:border-[hsl(var(--scheduler-selected))] hover:bg-[hsl(var(--scheduler-hover))]'
+                    : 'hover:border-[hsl(var(--scheduler-selected))] hover:bg-[hsl(var(--scheduler-hover))] hover:text-foreground'
                   }
                 `}
               >
