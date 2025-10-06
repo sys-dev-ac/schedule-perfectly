@@ -35,8 +35,8 @@ export const DateSelector = ({
         What day is best for you?
       </h2>
       
-      <div className="bg-card p-4 rounded-xl">
-        <div className="flex items-center justify-center gap-3">
+      <div className="bg-card p-6 rounded-xl shadow-sm">
+        <div className="flex items-center justify-center gap-4">
           <Button
             variant="ghost"
             size="icon"
@@ -46,7 +46,7 @@ export const DateSelector = ({
             <ChevronLeft className="h-5 w-5" />
           </Button>
 
-          <div className="flex gap-2 border border-[hsl(var(--scheduler-border))] rounded-xl p-2">
+          <div className="flex gap-2">
             {weekDays.map((day, index) => {
               const isSelected = isSameDay(day, selectedDate);
               const isDisabled = isDateDisabled(day);
@@ -57,36 +57,25 @@ export const DateSelector = ({
                   onClick={() => !isDisabled && onDateSelect(day)}
                   disabled={isDisabled}
                   className={`
-                    flex flex-col w-16 rounded-lg overflow-hidden border
+                    flex flex-col items-center justify-center w-16 py-3 px-2 rounded-lg
                     transition-all duration-200
                     ${isSelected 
-                      ? 'border-[hsl(var(--scheduler-selected))] shadow-lg scale-105' 
+                      ? 'bg-[hsl(var(--scheduler-selected))] text-[hsl(var(--scheduler-selected-foreground))] shadow-md' 
                       : isDisabled
-                      ? 'border-[hsl(var(--scheduler-border))] cursor-not-allowed'
-                      : 'border-[hsl(var(--scheduler-border))] hover:border-[hsl(var(--scheduler-selected))]'
+                      ? 'bg-muted/30 text-[hsl(var(--scheduler-disabled-foreground))] cursor-not-allowed'
+                      : 'bg-background text-foreground hover:bg-muted'
                     }
                   `}
                 >
-                  <div className={`
-                    text-xs font-medium py-1 text-center
-                    ${isSelected 
-                      ? 'bg-[hsl(var(--scheduler-selected))] text-[hsl(var(--scheduler-selected-foreground))]' 
-                      : 'bg-muted text-muted-foreground'
-                    }
-                  `}>
+                  <span className="text-xs font-medium mb-1">
                     {format(day, 'EEE')}
-                  </div>
-                  <div className={`
-                    flex flex-col items-center justify-center py-3 bg-card
-                    ${isDisabled ? 'text-[hsl(var(--scheduler-disabled-foreground))]' : 'text-foreground'}
-                  `}>
-                    <span className="text-lg font-semibold">
-                      {format(day, 'd')}
-                    </span>
-                    <span className="text-xs">
-                      {format(day, 'MMM')}
-                    </span>
-                  </div>
+                  </span>
+                  <span className="text-2xl font-semibold mb-0.5">
+                    {format(day, 'd')}
+                  </span>
+                  <span className="text-xs">
+                    {format(day, 'MMM')}
+                  </span>
                 </button>
               );
             })}
