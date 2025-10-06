@@ -3,6 +3,9 @@ import { format, addWeeks, startOfWeek, startOfDay } from "date-fns";
 import { SchedulerHeader } from "@/components/SchedulerHeader";
 import { DateSelector } from "@/components/DateSelector";
 import { TimeSelector } from "@/components/TimeSelector";
+import { BookingConfirmation } from "@/components/BookingConfirmation";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 // Mock API function - replace with actual API call
@@ -31,6 +34,8 @@ const Index = () => {
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -96,17 +101,28 @@ const Index = () => {
 
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time);
+  };
+
+  const handleConfirmBooking = async () => {
+    if (!selectedTime) return;
     
-    // Mock booking submission
+    setIsBooking(true);
+    
+    // Mock booking submission with loading
     const bookingData = {
       date: format(selectedDate, 'yyyy-MM-dd'),
-      time,
+      time: selectedTime,
       timezone: userTimezone,
       duration: 30
     };
     
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
     console.log('Booking submitted:', bookingData);
-    toast.success(`Time slot selected: ${time} on ${format(selectedDate, 'PPP')}`);
+    
+    setIsBooking(false);
+    setIsConfirmed(true);
     
     // In production, send this to your backend:
     // await fetch('/api/book', {
@@ -115,6 +131,24 @@ const Index = () => {
     //   body: JSON.stringify(bookingData)
     // });
   };
+
+  const handleReschedule = () => {
+    setIsConfirmed(false);
+    setSelectedTime(null);
+  };
+
+  if (isConfirmed && selectedTime) {
+    return (
+      <BookingConfirmation
+        userName="Rashmi Kalra"
+        userImage=""
+        selectedDate={selectedDate}
+        selectedTime={selectedTime}
+        timezone={userTimezone}
+        onReschedule={handleReschedule}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -144,6 +178,26 @@ const Index = () => {
             availableSlots={availableSlots}
             timezone={userTimezone}
           />
+        )}
+
+        {selectedTime && (
+          <div className="max-w-4xl mx-auto px-4">
+            <Button
+              size="lg"
+              className="w-full"
+              onClick={handleConfirmBooking}
+              disabled={isBooking}
+            >
+              {isBooking ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Confirming booking...
+                </>
+              ) : (
+                'Confirm Booking'
+              )}
+            </Button>
+          </div>
         )}
       </main>
     </div>
