@@ -7,7 +7,7 @@ interface SchedulerHeaderProps {
 
 export const SchedulerHeader = ({ userName, userImage }: SchedulerHeaderProps) => {
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-card">
+    <header className="flex items-center justify-between px-6 py-4 bg-card mb-4">
       <div className="flex items-center gap-3">
         <Avatar className="h-12 w-12">
           <AvatarImage src={userImage} alt={userName} />
