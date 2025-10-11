@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { BookingConfirmation } from "@/components/BookingConfirmation";
 import { Loader2 } from "lucide-react";
+import { BookingForm } from "@/components/BookingForm";
 
 // Mock API function - replace with actual API call
 const fetchAvailability = async (date: string) => {
@@ -25,6 +26,14 @@ const fetchAvailability = async (date: string) => {
   };
 };
 
+export interface UserData {
+  name: string,
+  email: string,
+  phone: string,
+  leadValue: number,
+  location: string
+}
+
 const Index = () => {
   const [weekStart, setWeekStart] = useState(() =>
     startOfWeek(new Date(), { weekStartsOn: 0 })
@@ -36,6 +45,17 @@ const Index = () => {
   const [loading, setLoading] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  // this will be used update the value
+  const [userdata, setUserdata] = useState<UserData>({
+    name: '',
+    email: '',
+    phone: '',
+    leadValue: 1,
+    location: ''
+  });
+
+  const [isUserFilled, setIsUserFilled] = useState(false);
+
 
 
   // previous date and time we have to track
@@ -66,6 +86,7 @@ const Index = () => {
 
     fetchWeekAvailability();
   }, [weekStart]);
+
 
   // Fetch time slots when date changes
   useEffect(() => {
@@ -127,10 +148,12 @@ const Index = () => {
   };
 
   const handleReschedule = () => {
-    setIsConfirmed(false);
-    setPreviousDate(selectedDate);
-    setPreviousTime(selectedTime);
-    setSelectedTime(null);
+
+    if (userdata !== null) {
+      setPreviousDate(selectedDate);
+      setPreviousTime(selectedTime);
+      setSelectedTime(null);
+    }
   };
 
   const handleConfirmBooking = async () => {
@@ -151,6 +174,8 @@ const Index = () => {
 
     console.log('Booking submitted:', bookingData);
 
+    localStorage.setItem('isAlreadyUser', 'true');
+
     setIsBooking(false);
     setIsConfirmed(true);
 
@@ -162,9 +187,29 @@ const Index = () => {
     // });
   };
 
+  // on submit
+  const handleBookingSubmit = async (data: UserData) => {
+
+    // i have to submit to the api 
+    console.log("the submitted user data ", data);
+
+    setIsUserFilled(true);
+    setIsConfirmed(true);
+  }
+
+
+  useEffect(() => {
+    const isAlreadyUser = localStorage.getItem('isAlreadyUser') === 'true';
+
+    if (isAlreadyUser) {
+      setIsUserFilled(true);
+      setIsConfirmed(true);
+    }
+  }, []);
+  
   if (isConfirmed && selectedTime) {
     return (
-      <BookingConfirmation
+      <BookingConfirmation  
         userName="Rashmi Kalra"
         userImage=""
         selectedDate={selectedDate}
@@ -182,84 +227,97 @@ const Index = () => {
         userImage=""
       />
 
-      <div>
-        {
-          previousDate && previousTime && (
-            <div className="px-4 max-w-2xl mx-auto">
+      {
+        isConfirmed ? (
+          <>
+            <div>
               {
                 previousDate && previousTime && (
-                  <div className="bg-gray-100 rounded-lg p-4 mb-6">
-                    <div className="text-left">
-                      <p className="text-sm text-gray-600 mb-1">Previous schedule</p>
-                      <p className="text-base font-medium text-gray-900">
-                        {format(previousDate, 'EEEE, MMM do')}, {previousTime} - {
-                          // Calculate end time (assuming 30 minutes duration)
-                          (() => {
-                            const [hours, minutes] = previousTime.split(':').map(Number);
-                            const startTime = new Date();
-                            startTime.setHours(hours, minutes, 0, 0);
-                            const endTime = new Date(startTime.getTime() + 30 * 60000);
-                            return format(endTime, 'HH:mm');
-                          })()
-                        } {userTimezone}
-                      </p>
-                    </div>
+                  <div className="px-4 max-w-2xl mx-auto">
+                    {
+                      previousDate && previousTime && (
+                        <div className="bg-gray-100 rounded-lg p-4 mb-6">
+                          <div className="text-left">
+                            <p className="text-sm text-gray-600 mb-1">Previous schedule</p>
+                            <p className="text-base font-medium text-gray-900">
+                              {format(previousDate, 'EEEE, MMM do')}, {previousTime} - {
+                                // Calculate end time (assuming 30 minutes duration)
+                                (() => {
+                                  const [hours, minutes] = previousTime.split(':').map(Number);
+                                  const startTime = new Date();
+                                  startTime.setHours(hours, minutes, 0, 0);
+                                  const endTime = new Date(startTime.getTime() + 30 * 60000);
+                                  return format(endTime, 'HH:mm');
+                                })()
+                              } {userTimezone}
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    }
                   </div>
                 )
               }
             </div>
-          )
-        }
-      </div>
 
-      <main className="py-8 space-y-8">
-        <DateSelector
-          weekStart={weekStart}
-          selectedDate={selectedDate}
-          onWeekChange={handleWeekChange}
-          onDateSelect={handleDateSelect}
-          availableDates={availableDates}
-        />
+            <main className="py-8 space-y-8">
+              <DateSelector
+                weekStart={weekStart}
+                selectedDate={selectedDate}
+                onWeekChange={handleWeekChange}
+                onDateSelect={handleDateSelect}
+                availableDates={availableDates}
+              />
 
-        {loading ? (
-          <div className="text-center text-muted-foreground">
-            Loading available times...
-          </div>
+              {loading ? (
+                <div className="text-center text-muted-foreground">
+                  Loading available times...
+                </div>
+              ) : (
+                <TimeSelector
+                  selectedDate={selectedDate}
+                  selectedTime={selectedTime}
+                  onTimeSelect={handleTimeSelect}
+                  availableSlots={availableSlots}
+                  timezone={userTimezone}
+                />
+              )}
+
+              {
+                selectedDate && selectedTime && (
+                  <div className="text-center">
+                    <Button
+                      size="lg"
+                      className="w-full max-w-md mx-auto font-semibold shadow-md hover:shadow-lg transition-shadow"
+                      onClick={() => {
+                        handleConfirmBooking();
+                      }}
+                      disabled={isBooking}
+                    >
+
+                      {isBooking ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Confirming booking...
+                        </>
+                      ) : (
+                        'Confirm Booking'
+                      )}
+                    </Button>
+                  </div>
+                )
+              }
+            </main>
+          </>
         ) : (
-          <TimeSelector
+          <BookingForm
             selectedDate={selectedDate}
             selectedTime={selectedTime}
-            onTimeSelect={handleTimeSelect}
-            availableSlots={availableSlots}
             timezone={userTimezone}
+            onSubmit={handleBookingSubmit}
           />
-        )}
-
-        {
-          selectedDate && selectedTime && (
-            <div className="text-center">
-              <Button
-                size="lg"
-                className="w-full max-w-md mx-auto font-semibold shadow-md hover:shadow-lg transition-shadow"
-                onClick={() => {
-                  handleConfirmBooking();
-                }}
-                disabled={isBooking}
-              >
-
-                {isBooking ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Confirming booking...
-                  </>
-                ) : (
-                  'Confirm Booking'
-                )}
-              </Button>
-            </div>
-          )
-        }
-      </main>
+        )
+      }
     </div>
   );
 };
