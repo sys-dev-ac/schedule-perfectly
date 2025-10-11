@@ -3,6 +3,9 @@ import { format, addWeeks, startOfWeek, startOfDay } from "date-fns";
 import { SchedulerHeader } from "@/components/SchedulerHeader";
 import { DateSelector } from "@/components/DateSelector";
 import { TimeSelector } from "@/components/TimeSelector";
+import { BookingConfirmation } from "@/components/BookingConfirmation";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { BookingConfirmation } from "@/components/BookingConfirmation";
@@ -131,7 +134,7 @@ const Index = () => {
     // Mock booking submission
     const bookingData = {
       date: format(selectedDate, 'yyyy-MM-dd'),
-      time,
+      time: selectedTime,
       timezone: userTimezone,
       duration: 30
     };

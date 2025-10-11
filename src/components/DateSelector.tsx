@@ -46,7 +46,7 @@ export const DateSelector = ({
             <ChevronLeft className="h-5 w-5" />
           </Button>
 
-          <div className="flex gap-2 border border-[hsl(var(--scheduler-border))] rounded-xl p-2">
+          <div className="flex gap-2">
             {weekDays.map((day, index) => {
               const isSelected = isSameDay(day, selectedDate);
               const isDisabled = isDateDisabled(day);
