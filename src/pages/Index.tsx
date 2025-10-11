@@ -7,26 +7,38 @@ import { BookingConfirmation } from "@/components/BookingConfirmation";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { BookingConfirmation } from "@/components/BookingConfirmation";
+import { Loader2 } from "lucide-react";
+import { BookingForm } from "@/components/BookingForm";
 
 // Mock API function - replace with actual API call
 const fetchAvailability = async (date: string) => {
   // Simulate API call
   await new Promise(resolve => setTimeout(resolve, 300));
-  
+
   // Mock data - in production, this would come from your backend
   const mockSlots = [
     "11:30", "11:45", "12:00", "12:15", "12:30", "12:45",
     "13:00", "13:15", "13:30", "15:15", "15:30", "16:30"
   ];
-  
+
   return {
     date,
     slots: mockSlots
   };
 };
 
+export interface UserData {
+  name: string,
+  email: string,
+  phone: string,
+  leadValue: number,
+  location: string
+}
+
 const Index = () => {
-  const [weekStart, setWeekStart] = useState(() => 
+  const [weekStart, setWeekStart] = useState(() =>
     startOfWeek(new Date(), { weekStartsOn: 0 })
   );
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
@@ -36,6 +48,22 @@ const Index = () => {
   const [loading, setLoading] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  // this will be used update the value
+  const [userdata, setUserdata] = useState<UserData>({
+    name: '',
+    email: '',
+    phone: '',
+    leadValue: 1,
+    location: ''
+  });
+
+  const [isUserFilled, setIsUserFilled] = useState(false);
+
+
+
+  // previous date and time we have to track
+  const [previousDate, setPreviousDate] = useState<Date | null>(null);
+  const [previousTime, setPreviousTime] = useState<string | null>(null);
 
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -45,22 +73,23 @@ const Index = () => {
       // Mock: In production, fetch which dates have availability
       const dates: string[] = [];
       const today = startOfDay(new Date());
-      
+
       for (let i = 0; i < 7; i++) {
         const date = new Date(weekStart);
         date.setDate(date.getDate() + i);
-        
+
         // Only add future dates
         if (date >= today) {
           dates.push(format(date, 'yyyy-MM-dd'));
         }
       }
-      
+
       setAvailableDates(dates);
     };
 
     fetchWeekAvailability();
   }, [weekStart]);
+
 
   // Fetch time slots when date changes
   useEffect(() => {
@@ -86,12 +115,12 @@ const Index = () => {
   const handleWeekChange = (direction: 'prev' | 'next') => {
     const today = startOfDay(new Date());
     const newWeekStart = addWeeks(weekStart, direction === 'next' ? 1 : -1);
-    
+
     // Don't allow going to past weeks
     if (direction === 'prev' && newWeekStart < startOfWeek(today, { weekStartsOn: 0 })) {
       return;
     }
-    
+
     setWeekStart(newWeekStart);
   };
 
@@ -101,29 +130,18 @@ const Index = () => {
 
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time);
-  };
 
-  const handleConfirmBooking = async () => {
-    if (!selectedTime) return;
-    
-    setIsBooking(true);
-    
-    // Mock booking submission with loading
+    // Mock booking submission
     const bookingData = {
       date: format(selectedDate, 'yyyy-MM-dd'),
       time: selectedTime,
       timezone: userTimezone,
       duration: 30
     };
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
+
     console.log('Booking submitted:', bookingData);
-    
-    setIsBooking(false);
-    setIsConfirmed(true);
-    
+    toast.success(`Time slot selected: ${time} on ${format(selectedDate, 'PPP')}`);
+
     // In production, send this to your backend:
     // await fetch('/api/book', {
     //   method: 'POST',
@@ -133,13 +151,68 @@ const Index = () => {
   };
 
   const handleReschedule = () => {
-    setIsConfirmed(false);
-    setSelectedTime(null);
+
+    if (userdata !== null) {
+      setPreviousDate(selectedDate);
+      setPreviousTime(selectedTime);
+      setSelectedTime(null);
+    }
   };
 
+  const handleConfirmBooking = async () => {
+    if (!selectedTime) return;
+
+    setIsBooking(true);
+
+    // Mock booking submission with loading
+    const bookingData = {
+      date: format(selectedDate, 'yyyy-MM-dd'),
+      time: selectedTime,
+      timezone: userTimezone,
+      duration: 30
+    };
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    console.log('Booking submitted:', bookingData);
+
+    localStorage.setItem('isAlreadyUser', 'true');
+
+    setIsBooking(false);
+    setIsConfirmed(true);
+
+    // In production, send this to your backend:
+    // await fetch('/api/book', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify(bookingData)
+    // });
+  };
+
+  // on submit
+  const handleBookingSubmit = async (data: UserData) => {
+
+    // i have to submit to the api 
+    console.log("the submitted user data ", data);
+
+    setIsUserFilled(true);
+    setIsConfirmed(true);
+  }
+
+
+  useEffect(() => {
+    const isAlreadyUser = localStorage.getItem('isAlreadyUser') === 'true';
+
+    if (isAlreadyUser) {
+      setIsUserFilled(true);
+      setIsConfirmed(true);
+    }
+  }, []);
+  
   if (isConfirmed && selectedTime) {
     return (
-      <BookingConfirmation
+      <BookingConfirmation  
         userName="Rashmi Kalra"
         userImage=""
         selectedDate={selectedDate}
@@ -151,55 +224,103 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <SchedulerHeader 
+    <div className="min-h-screen bg-background ">
+      <SchedulerHeader
         userName="Rashmi Kalra"
         userImage=""
       />
-      
-      <main className="py-8 space-y-8">
-        <DateSelector
-          weekStart={weekStart}
-          selectedDate={selectedDate}
-          onWeekChange={handleWeekChange}
-          onDateSelect={handleDateSelect}
-          availableDates={availableDates}
-        />
-        
-        {loading ? (
-          <div className="text-center text-muted-foreground">
-            Loading available times...
-          </div>
+
+      {
+        isConfirmed ? (
+          <>
+            <div>
+              {
+                previousDate && previousTime && (
+                  <div className="px-4 max-w-2xl mx-auto">
+                    {
+                      previousDate && previousTime && (
+                        <div className="bg-gray-100 rounded-lg p-4 mb-6">
+                          <div className="text-left">
+                            <p className="text-sm text-gray-600 mb-1">Previous schedule</p>
+                            <p className="text-base font-medium text-gray-900">
+                              {format(previousDate, 'EEEE, MMM do')}, {previousTime} - {
+                                // Calculate end time (assuming 30 minutes duration)
+                                (() => {
+                                  const [hours, minutes] = previousTime.split(':').map(Number);
+                                  const startTime = new Date();
+                                  startTime.setHours(hours, minutes, 0, 0);
+                                  const endTime = new Date(startTime.getTime() + 30 * 60000);
+                                  return format(endTime, 'HH:mm');
+                                })()
+                              } {userTimezone}
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    }
+                  </div>
+                )
+              }
+            </div>
+
+            <main className="py-8 space-y-8">
+              <DateSelector
+                weekStart={weekStart}
+                selectedDate={selectedDate}
+                onWeekChange={handleWeekChange}
+                onDateSelect={handleDateSelect}
+                availableDates={availableDates}
+              />
+
+              {loading ? (
+                <div className="text-center text-muted-foreground">
+                  Loading available times...
+                </div>
+              ) : (
+                <TimeSelector
+                  selectedDate={selectedDate}
+                  selectedTime={selectedTime}
+                  onTimeSelect={handleTimeSelect}
+                  availableSlots={availableSlots}
+                  timezone={userTimezone}
+                />
+              )}
+
+              {
+                selectedDate && selectedTime && (
+                  <div className="text-center">
+                    <Button
+                      size="lg"
+                      className="w-full max-w-md mx-auto font-semibold shadow-md hover:shadow-lg transition-shadow"
+                      onClick={() => {
+                        handleConfirmBooking();
+                      }}
+                      disabled={isBooking}
+                    >
+
+                      {isBooking ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Confirming booking...
+                        </>
+                      ) : (
+                        'Confirm Booking'
+                      )}
+                    </Button>
+                  </div>
+                )
+              }
+            </main>
+          </>
         ) : (
-          <TimeSelector
+          <BookingForm
             selectedDate={selectedDate}
             selectedTime={selectedTime}
-            onTimeSelect={handleTimeSelect}
-            availableSlots={availableSlots}
             timezone={userTimezone}
+            onSubmit={handleBookingSubmit}
           />
-        )}
-
-        {selectedTime && (
-          <div className="max-w-4xl mx-auto px-4">
-            <Button
-              size="lg"
-              className="w-full"
-              onClick={handleConfirmBooking}
-              disabled={isBooking}
-            >
-              {isBooking ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Confirming booking...
-                </>
-              ) : (
-                'Confirm Booking'
-              )}
-            </Button>
-          </div>
-        )}
-      </main>
+        )
+      }
     </div>
   );
 };
